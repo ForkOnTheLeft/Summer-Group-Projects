@@ -13,6 +13,7 @@ void getInput(int matrix[][COLS]);
 int main()
 {
     int matrix [ROWS][COLS];
+    std::srand(std::time(nullptr));
     clearMatrix(matrix);
     shipPosition(matrix);
 
