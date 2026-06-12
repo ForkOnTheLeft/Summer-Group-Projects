@@ -2,15 +2,20 @@
 #include <conio.h>
 #include <cstdlib> // For random number
 #include <ctime> // time
+#include <windows.h>
 
 // Map Dimension
 const int width = 20;
 const int length = 20;
+const int tail_size = 100;
 
-// Variable Declaration
+// Global Variable Declaration
 int headX, headY;    // Snake head position
 int fruitX, fruitY;  // Fruit position
 bool gameOver;       // Indicates if the game has ended
+int score = 0;       // Score eating fruit
+int tailX[tail_size], tailY[tail_size];    // Arrays store the length of the snake's tail
+int tailLength = 0;
 
 // Enum representing movement direction
 enum Direction { STOP = 0, LEFT, RIGHT, UP, DOWN };
@@ -19,39 +24,40 @@ Direction dir;
 // Function Declaration
 void initialize();
 void setUp();
-void Input();
+void input();
 void logic();
 
 int main()
 {
-    gameOver = false;
-    dir = STOP;
     std::srand(std::time(nullptr));
     initialize();
-    setUp();
 
     while (!gameOver)
     {
-        Input();
+        setUp();
+        input();
         logic();
+        Sleep(150);
     }
+
     return 0;
 }
 
 void initialize()
 {
     gameOver = false;
-
+    dir = STOP;
     headX = width / 2;
     headY = length / 2;
+    score = 0;
+    tailLength = 0;
 
     fruitX = std::rand() % width;
     fruitY = std::rand() % length;
-
 }
 
 /**
- * @brief: create the map, spawn the snake, and spam the fruit
+ * @brief: creates the map, spawns the snake and the fruit
  */
 void setUp()
 {
@@ -74,22 +80,35 @@ void setUp()
                 std::cout << "#";
             }
             // Right wall
-            if (j == width - 1)
+            else if (j == width - 1)
             {
                 std::cout << "#";
             }
-            if ( i == headY && j == headX)  //spawn snake's head
-             {
+            else if ( i == headY && j == headX)  //spawn snake's head
+            {
                  std::cout << "O";
-             }
-            else if ( i == fruitY && j == fruitX) //spam the fruit
+            }
+            else if ( i == fruitY && j == fruitX) //spawn the fruit
             {
                  std::cout << "F";
-                }
+            }
 
             else
             {
-                std::cout << " ";
+                bool found = false;
+                for ( int k = 0; k < tailLength; k++) // spawn snake's tail
+                {
+                    if (tailX[k] == j && tailY[k] == i)
+                    {
+                        std::cout << "o";
+                        found = true;
+                    }
+                }
+                //blank spaces if no tail
+                if (!found)
+                {
+                    std::cout << " ";
+                }
             }
 
         }
@@ -101,12 +120,16 @@ void setUp()
     {
         std::cout << "#";
     }
+
+    std::cout << std::endl;
+
+    std::cout << "Score: " << score << std::endl;
 }
 
 /*
- * @brief keyboard input
+ * @brief takes keyboard input from user to move the snake with wasd. any other key will exit the game
  */
-void Input()
+void input()
 {
     if (_kbhit())
     {
@@ -132,8 +155,32 @@ void Input()
     }
 }
 
+/*
+ * @brief logic of the game for movement
+ */
 void logic()
 {
+    // Swapping tail positions
+    int swappingX = tailX[0];
+    int swappingY = tailY[0];
+    int swapping2X, swapping2Y;
+
+    tailX[0] = headX;
+    tailY[0] = headY;
+
+    for (int i = 1; i < tailLength; i++)
+    {
+        swapping2X = tailX[i];
+        swapping2Y = tailY[i];
+
+        tailX[i] = swappingX;
+        tailY[i] = swappingY;
+
+        swappingX = swapping2X;
+        swappingY = swapping2Y;
+    }
+
+    // Moving snake head with wasd
     switch (dir)
     {
         case LEFT:
@@ -152,4 +199,28 @@ void logic()
             break;
     }
 
+    // Colliding wall = gameover
+    if ( headX < 0 || headX >= width || headY < 0 || headY >= length)
+    {
+        gameOver = true;
+    }
+
+    // Touching itself = gameover
+    for (int i = 0; i < tailLength; i++)
+    {
+        if (headX == tailX[i] && headY == tailY[i])
+        {
+            gameOver = true;
+
+        }
+    }
+
+    // Eating fruit = longer tail length
+    if (headX == fruitX && headY == fruitY)
+    {
+        score += 10;
+        fruitX = std::rand() % width;
+        fruitY = std::rand() % length;
+        tailLength++;
+    }
 }
