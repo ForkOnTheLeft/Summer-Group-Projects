@@ -74,6 +74,7 @@ void printMatrix(char tictac[][COLS], int ROWS)
  *
  * @param tictac Matrix for the Tic-Tac-Toe
  * @param ROWS Number of rows in the matrix
+ * @return The position of the Tic-Tac-Toe
  */
 int getInput(char tictac[][COLS], int ROWS, int &count)
 {
